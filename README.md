@@ -1,5 +1,10 @@
 ### System.Device
 
+Entiat Update 2022-06-12 - this fork now builds in VS2022 for target framework: net6.0-windows, analyzer messages for new language features, etc. and other IDE recommendations applied.
+
+Original dotMorten README follows:
+===========================
+
 .NET Core 3.0 port of System.Device.Location APIs from .NET Reference Source.
 
 Based on commit: https://github.com/microsoft/referencesource/commit/bf498ea2b1a6270a2fe5cb122acf4b1c5b45c21d
