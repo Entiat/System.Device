@@ -13,15 +13,10 @@
 **
 =============================================================================*/
 
-using System;
 using System.Security;
-using System.Diagnostics;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.ComponentModel;
 using System.Threading;
 using System.Device.Location.Internal;
-using System.Globalization;
 
 namespace System.Device.Location
 {
@@ -48,7 +43,7 @@ namespace System.Device.Location
 
         private GeoPositionPermission m_permission = GeoPositionPermission.Unknown;
         private GeoPositionStatus m_curStatus  = GeoPositionStatus.NoData;
-        private GeoPosition<GeoCoordinate> m_position = new GeoPosition<GeoCoordinate>(DateTimeOffset.MinValue, GeoCoordinate.Unknown);
+        private GeoPosition<GeoCoordinate> m_position = new(DateTimeOffset.MinValue, GeoCoordinate.Unknown);
 
         /// <summary>
         /// Helper to map internal COM ReportStatus into GeoPositionPermission
@@ -299,12 +294,11 @@ namespace System.Device.Location
                     Guid reportType = (m_latLongStatus != ReportStatus.NotSupported) ?
                                        LocationReportKey.LatLongReport : LocationReportKey.CivicAddressReport;
 
-                    ILocationReport report;
-                    if (m_location.GetReport(ref reportType, out report) == 0)
-                    {
-                        HandleLocationChangedEvent(report);
-                    }
-                }
+					if (m_location.GetReport(ref reportType, out ILocationReport report) == 0)
+					{
+						HandleLocationChangedEvent(report);
+					}
+				}
             }
         }
 
@@ -376,7 +370,7 @@ namespace System.Device.Location
 
         #region Helpers
         // Report status to GeoPosition status look-up table
-        private static GeoPositionStatus[] m_geoStatusMap = new GeoPositionStatus[] 
+        private static readonly GeoPositionStatus[] m_geoStatusMap = new GeoPositionStatus[] 
         {
             GeoPositionStatus.NoData,       // ReportStatus.NotSupported = 0,
             GeoPositionStatus.NoData,       // ReportStatus.Error = 1,
@@ -393,37 +387,34 @@ namespace System.Device.Location
             CivicAddress address = CivicAddress.Unknown;
 
             DateTimeOffset timestamp = DateTimeOffset.Now;
-            SYSTEMTIME systime;
-            if (0 == locationReport.GetTimestamp(out systime))
+			if (0 == locationReport.GetTimestamp(out SYSTEMTIME systime))
+			{
+				timestamp = new DateTimeOffset(systime.wYear, systime.wMonth, systime.wDay, systime.wHour,
+											   systime.wMinute, systime.wSecond, systime.wMilliseconds, TimeSpan.Zero);
+			}
+
+			//
+			// If we are listening for latlong reports and this is one,
+			// extract the coordinate properties
+			//
+			if (m_latLongStatus != ReportStatus.NotSupported)
             {
-                timestamp = new DateTimeOffset(systime.wYear, systime.wMonth, systime.wDay, systime.wHour,
-                                               systime.wMinute, systime.wSecond, systime.wMilliseconds, TimeSpan.Zero);
-            }
+				if (locationReport is ILatLongReport latLongReport)
+				{
+					if ((latLongReport.GetLatitude(out double latitude) == 0) &&
+						(latLongReport.GetLongitude(out double longitude) == 0))
+					{
+						latLongReport.GetErrorRadius(out double errorRadius);
+						latLongReport.GetAltitude(out double altitude);
+						latLongReport.GetAltitudeError(out double altitudeError);
 
-            //
-            // If we are listening for latlong reports and this is one,
-            // extract the coordinate properties
-            //
-            if (m_latLongStatus != ReportStatus.NotSupported)
-            {
-                ILatLongReport latLongReport = locationReport as ILatLongReport;
-                if (latLongReport != null)
-                {
-                    double latitude, longitude, errorRadius, altitude, altitudeError;
-                    if ((latLongReport.GetLatitude(out latitude) == 0) &&
-                        (latLongReport.GetLongitude(out longitude) == 0))
-                    {
-                        latLongReport.GetErrorRadius(out errorRadius);
-                        latLongReport.GetAltitude(out altitude);
-                        latLongReport.GetAltitudeError(out altitudeError);
+						double speed = GetDoubleProperty(locationReport, LocationPropertyKey.Speed) * KnotsToMetersPerSec;
+						double course = GetDoubleProperty(locationReport, LocationPropertyKey.Heading);
 
-                        double speed = GetDoubleProperty(locationReport, LocationPropertyKey.Speed) * KnotsToMetersPerSec;
-                        double course = GetDoubleProperty(locationReport, LocationPropertyKey.Heading);
-
-                        coordinate = new GeoCoordinate(latitude, longitude, altitude, errorRadius, altitudeError, speed, course);
-                    }
-                }
-            }
+						coordinate = new GeoCoordinate(latitude, longitude, altitude, errorRadius, altitudeError, speed, course);
+					}
+				}
+			}
             
             //
             // Now see if there is civic address data in the report. We do this for both latlong and civic address
@@ -432,7 +423,7 @@ namespace System.Device.Location
             // because the native location provider API defaults to UserGeoID if no sensor provides one. 
             //
             string countryRegion = GetStringProperty(locationReport, LocationPropertyKey.CountryRegion);
-            if (countryRegion != String.Empty)
+            if (countryRegion != string.Empty)
             {
                 string address1      = GetStringProperty(locationReport, LocationPropertyKey.AddressLine1);
                 string address2      = GetStringProperty(locationReport, LocationPropertyKey.AddressLine2);
@@ -440,10 +431,10 @@ namespace System.Device.Location
                 string postalCode    = GetStringProperty(locationReport, LocationPropertyKey.PostalCode);
                 string stateProvince = GetStringProperty(locationReport, LocationPropertyKey.StateProvince);
 
-                if (address1 != String.Empty || address2 != String.Empty || city != String.Empty || 
-                    postalCode != String.Empty || stateProvince != String.Empty)
+                if (address1 != string.Empty || address2 != string.Empty || city != string.Empty || 
+                    postalCode != string.Empty || stateProvince != string.Empty)
                 {
-                    address = new CivicAddress(address1, address2,  String.Empty, city, countryRegion, String.Empty, postalCode, stateProvince);
+                    address = new CivicAddress(address1, address2, string.Empty, city, countryRegion, string.Empty, postalCode, stateProvince);
                 }
             }
 
@@ -501,9 +492,9 @@ namespace System.Device.Location
             }
         }
 
-        private void HandleLocationStatusChangedEvent(ReportStatus newStatus)
+        private void HandleLocationStatusChangedEvent(ReportStatus _)
         {
-            lock (this.InternalSyncObject)
+            lock (InternalSyncObject)
             {
                 //
                 // If we are registered for civic address reports and a latlong provider
@@ -566,11 +557,11 @@ namespace System.Device.Location
             }
         }
 
-        private double GetDoubleProperty(ILocationReport report, PROPERTYKEY propkey)
+        private static double GetDoubleProperty(ILocationReport report, PROPERTYKEY propkey)
         {
             double val = double.NaN;
 
-            PROPVARIANT pv = new PROPVARIANT();
+            PROPVARIANT pv = new();
             using (pv)
             {
                 if (0 == report.GetValue(ref propkey, pv))
@@ -585,11 +576,11 @@ namespace System.Device.Location
             return val;
         }
 
-        private string GetStringProperty(ILocationReport report, PROPERTYKEY propkey)
+        private static string GetStringProperty(ILocationReport report, PROPERTYKEY propkey)
         {
-            string val = String.Empty;
+            string val = string.Empty;
 
-            PROPVARIANT pv = new PROPVARIANT();
+            PROPVARIANT pv = new();
             using (pv)
             {
                 int hr = report.GetValue(ref propkey, pv);
@@ -605,14 +596,14 @@ namespace System.Device.Location
             return val;
         }
 
-        private Object InternalSyncObject
+        private object InternalSyncObject
         {
             get
             {
                 if (m_lock == null)
                 {
-                    Object o = new Object();
-                    Interlocked.CompareExchange<Object>(ref m_lock, o, null);
+                    object o = new();
+                    Interlocked.CompareExchange<object>(ref m_lock, o, null);
                 }
                 return m_lock;
             }
@@ -699,7 +690,7 @@ namespace System.Device.Location
             Dispose(false);
         }
 
-        private void Dispose(Boolean disposing)
+        private void Dispose(bool disposing)
         {
             Utility.Trace("GeoCoordinateWatcherInternal.Dispose(disposing=)" + disposing.ToString() + ")");
             

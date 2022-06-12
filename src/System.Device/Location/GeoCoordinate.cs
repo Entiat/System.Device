@@ -11,10 +11,7 @@
 **
 =============================================================================*/
 
-using System;
 using System.Globalization;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace System.Device.Location
 {
@@ -28,7 +25,7 @@ namespace System.Device.Location
         private double m_speed = double.NaN;
         private double m_course = double.NaN;
 
-        public static readonly GeoCoordinate Unknown = new GeoCoordinate();
+        public static readonly GeoCoordinate Unknown = new();
 
         internal CivicAddress m_address = CivicAddress.Unknown;
 
@@ -38,18 +35,18 @@ namespace System.Device.Location
         //
         public GeoCoordinate() {}
 
-        public GeoCoordinate(Double latitude, Double longitude) 
-            : this(latitude, longitude, Double.NaN)
+        public GeoCoordinate(double latitude, double longitude) 
+            : this(latitude, longitude, double.NaN)
         {
         }
 
-        public GeoCoordinate(Double latitude, Double longitude, Double altitude)
-            : this(latitude, longitude, altitude, Double.NaN, Double.NaN, Double.NaN, Double.NaN)
+        public GeoCoordinate(double latitude, double longitude, double altitude)
+            : this(latitude, longitude, altitude, double.NaN, double.NaN, double.NaN, double.NaN)
         {
         }
 
-        public GeoCoordinate(Double latitude, Double longitude, Double altitude,
-            Double horizontalAccuracy, Double verticalAccuracy, Double speed, Double course)
+        public GeoCoordinate(double latitude, double longitude, double altitude,
+            double horizontalAccuracy, double verticalAccuracy, double speed, double course)
         {
             Latitude = latitude;
             Longitude = longitude;
@@ -66,7 +63,7 @@ namespace System.Device.Location
 
         #region Properties
 
-        public Double Latitude 
+        public double Latitude 
         {
             get
             {
@@ -76,13 +73,13 @@ namespace System.Device.Location
             {
                 if (value > 90.0 || value < -90.0)
                 {
-                    throw new ArgumentOutOfRangeException("Latitude", SR.Argument_MustBeInRangeNegative90to90);
+                    throw new ArgumentOutOfRangeException(nameof(Latitude), SR.Argument_MustBeInRangeNegative90to90);
                 }
                 m_latitude = value;
             }
         }
 
-        public Double Longitude
+        public double Longitude
         {
             get
             {
@@ -92,13 +89,13 @@ namespace System.Device.Location
             {
                 if (value > 180.0 || value < -180.0)
                 {
-                    throw new ArgumentOutOfRangeException("Longitude", SR.Argument_MustBeInRangeNegative180To180);
+                    throw new ArgumentOutOfRangeException(nameof(Longitude), SR.Argument_MustBeInRangeNegative180To180);
                 }
                 m_longitude = value;
             }
         }
 
-        public Double Altitude
+        public double Altitude
         {
             get
             {
@@ -111,7 +108,7 @@ namespace System.Device.Location
             }
         }
 
-        public Double HorizontalAccuracy
+        public double HorizontalAccuracy
         {
             get
             {
@@ -121,13 +118,13 @@ namespace System.Device.Location
             {
                 if (value < 0.0)
                 {
-                    throw new ArgumentOutOfRangeException("HorizontalAccuracy", SR.Argument_MustBeNonNegative);
+                    throw new ArgumentOutOfRangeException(nameof(HorizontalAccuracy), SR.Argument_MustBeNonNegative);
                 }
-                m_horizontalAccuracy = (value == 0.0) ? Double.NaN : value;
+                m_horizontalAccuracy = (value == 0.0) ? double.NaN : value;
             }
         }
 
-        public Double VerticalAccuracy 
+        public double VerticalAccuracy 
         {
             get
             {
@@ -137,13 +134,13 @@ namespace System.Device.Location
             {
                 if (value < 0.0)
                 {
-                    throw new ArgumentOutOfRangeException("VerticalAccuracy", SR.Argument_MustBeNonNegative);
+                    throw new ArgumentOutOfRangeException(nameof(VerticalAccuracy), SR.Argument_MustBeNonNegative);
                 }
-                m_verticalAccuracy = (value == 0.0) ? Double.NaN : value;
+                m_verticalAccuracy = (value == 0.0) ? double.NaN : value;
             }
         }
 
-        public Double Speed
+        public double Speed
         {
             get
             {
@@ -153,13 +150,13 @@ namespace System.Device.Location
             {
                 if (value < 0.0)
                 {
-                    throw new ArgumentOutOfRangeException("speed", SR.Argument_MustBeNonNegative);
+                    throw new ArgumentOutOfRangeException(nameof(Speed), SR.Argument_MustBeNonNegative);
                 }
                 m_speed = value;
             }
         }
 
-        public Double Course
+        public double Course
         {
             get
             {
@@ -169,17 +166,17 @@ namespace System.Device.Location
             {
                 if (value < 0.0 || value > 360.0)
                 {
-                    throw new ArgumentOutOfRangeException("course", SR.Argument_MustBeInRangeZeroTo360);
+                    throw new ArgumentOutOfRangeException(nameof(Course), SR.Argument_MustBeInRangeZeroTo360);
                 }
                 m_course = value;
             }
         }
         
-        public Boolean IsUnknown 
+        public bool IsUnknown 
         {
             get
             {
-                return this.Equals(GeoCoordinate.Unknown);
+                return this.Equals(Unknown);
             }
         }
 
@@ -187,7 +184,7 @@ namespace System.Device.Location
 
         #region Methods
 
-        public Double GetDistanceTo(GeoCoordinate other)
+        public double GetDistanceTo(GeoCoordinate other)
         {
             //  The Haversine formula according to Dr. Math.
             //  http://mathforum.org/library/drmath/view/51879.html
@@ -207,16 +204,14 @@ namespace System.Device.Location
             //        spherical coordinates (longitude and 
             //        latitude) are lon1,lat1 and lon2, lat2.
 
-            if (Double.IsNaN(this.Latitude)  || Double.IsNaN(this.Longitude) ||
-                Double.IsNaN(other.Latitude) || Double.IsNaN(other.Longitude))
+            if (double.IsNaN(this.Latitude)  || double.IsNaN(this.Longitude) ||
+                double.IsNaN(other.Latitude) || double.IsNaN(other.Longitude))
             {
                 throw new ArgumentException(SR.Argument_LatitudeOrLongitudeIsNotANumber);
             }
 
-            double dDistance = Double.NaN;
-
-            double dLat1 = this.Latitude * (Math.PI / 180.0);
-            double dLon1 = this.Longitude * (Math.PI / 180.0);
+			double dLat1 = Latitude * (Math.PI / 180.0);
+            double dLon1 = Longitude * (Math.PI / 180.0);
             double dLat2 = other.Latitude * (Math.PI / 180.0);
             double dLon2 = other.Longitude * (Math.PI / 180.0);
 
@@ -232,10 +227,10 @@ namespace System.Device.Location
             double c = 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1.0 - a));
 
             // Distance.
-            const Double kEarthRadiusMs = 6376500;
-            dDistance = kEarthRadiusMs * c;
+            const double kEarthRadiusMs = 6376500;
+			double dDistance = kEarthRadiusMs * c;
 
-            return dDistance;
+			return dDistance;
         }
 
         #endregion
@@ -253,8 +248,9 @@ namespace System.Device.Location
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is GeoCoordinate)) return base.Equals(obj);
-            return Equals(obj as GeoCoordinate);
+            if (obj is not GeoCoordinate g) 
+                return base.Equals(obj);
+            return Equals(g);
         }
         /// <summary>
         /// This override is for debugging purpose only
@@ -262,7 +258,7 @@ namespace System.Device.Location
         /// <returns></returns>
         public override string ToString()
         {
-            if (this == GeoCoordinate.Unknown)
+            if (this == Unknown)
             {
                 return "Unknown";
             }
@@ -278,7 +274,7 @@ namespace System.Device.Location
         #region IEquatable
         public bool Equals(GeoCoordinate other)
         {
-            if (object.ReferenceEquals(other, null))
+            if (other is null)
             {
                 return false;
             }
@@ -287,16 +283,16 @@ namespace System.Device.Location
         #endregion
 
         #region Public static operators
-        public static Boolean operator ==(GeoCoordinate left, GeoCoordinate right)
+        public static bool operator ==(GeoCoordinate left, GeoCoordinate right)
         {
-            if (object.ReferenceEquals(left, null))
+            if (left is null)
             {
-                return object.ReferenceEquals(right, null);
+                return right is null;
             }
             return left.Equals(right);
         }
 
-        public static Boolean operator !=(GeoCoordinate left, GeoCoordinate right)
+        public static bool operator !=(GeoCoordinate left, GeoCoordinate right)
         {
             return !(left == right);
         }

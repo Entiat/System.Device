@@ -11,23 +11,19 @@
 **
 =============================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Threading;
 using System.Device.Location.Internal;
 using System.Diagnostics;
-using System.Globalization;
 using System.Security;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Device.Location
 {
-    /// <summary>
-    /// Represents location provider accuracy
-    /// </summary>
-    public enum GeoPositionAccuracy
+	/// <summary>
+	/// Represents location provider accuracy
+	/// </summary>
+	public enum GeoPositionAccuracy
     {
         Default = 0,
         High
@@ -59,8 +55,8 @@ namespace System.Device.Location
     public interface IGeoPositionWatcher<T>
     {
         void Start();
-        void Start(Boolean suppressPermissionPrompt);
-        Boolean TryStart(Boolean suppressPermissionPrompt, TimeSpan timeout);
+        void Start(bool suppressPermissionPrompt);
+        bool TryStart(bool suppressPermissionPrompt, TimeSpan timeout);
         [SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords")]
         void Stop();
 
@@ -77,30 +73,27 @@ namespace System.Device.Location
     /// </summary>
     internal abstract class GeoCoordinateWatcherBase
     {
-        public abstract Boolean TryStart(Boolean suppressPermissionPrompt, TimeSpan timeout);
+        public abstract bool TryStart(bool suppressPermissionPrompt, TimeSpan timeout);
         public abstract void Stop();
-        public virtual Boolean IsStarted { get; protected set; }
+        public virtual bool IsStarted { get; protected set; }
         public virtual GeoPositionPermission Permission { get; protected set; }
         public virtual GeoPositionStatus Status { get; protected set; }
         public virtual GeoPosition<GeoCoordinate> Position { get; protected set; }
 
         public virtual void OnPositionChanged(GeoPositionChangedEventArgs<GeoCoordinate> e)
         {
-            EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>> t = PositionChanged;
-            if (t != null) t(this, e);
-        }
+			PositionChanged?.Invoke(this, e);
+		}
 
         public virtual void OnPositionStatusChanged(GeoPositionStatusChangedEventArgs e)
         {
-            EventHandler<GeoPositionStatusChangedEventArgs> t = StatusChanged;
-            if (t != null) t(this, e);
-        }
+			StatusChanged?.Invoke(this, e);
+		}
 
         public virtual void OnPermissionChanged(GeoPermissionChangedEventArgs e)
         {
-            EventHandler<GeoPermissionChangedEventArgs> t = PermissionChanged;
-            if (t != null) t(this, e);
-        }
+			PermissionChanged?.Invoke(this, e);
+		}
 
         public event EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>> PositionChanged;
         public event EventHandler<GeoPositionStatusChangedEventArgs> StatusChanged;
@@ -118,9 +111,11 @@ namespace System.Device.Location
         private GeoPositionAccuracy m_desiredAccuracy = GeoPositionAccuracy.Default;
         private GeoCoordinateWatcherInternal m_watcher;
         private PropertyChangedEventHandler m_propertyChanged;
-        private EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>> m_positionChanged;
-        private EventHandler<GeoPositionStatusChangedEventArgs> m_statusChanged;
-        private SynchronizationContext m_synchronizationContext;
+#pragma warning disable IDE0052 // Remove unread private members
+		private EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>> m_positionChanged;
+		private EventHandler<GeoPositionStatusChangedEventArgs> m_statusChanged;
+#pragma warning restore IDE0052 // Remove unread private members
+        private readonly SynchronizationContext m_synchronizationContext;
         private bool m_disposed;
         private double m_threshold = 0.0;
 
@@ -172,15 +167,15 @@ namespace System.Device.Location
             }
         }
 
-        public Double MovementThreshold
+        public double MovementThreshold
         {
             set
             {
                 DisposeCheck();
 
-                if (value < 0.0 || Double.IsNaN(value))
+                if (value < 0.0 || double.IsNaN(value))
                 {
-                    throw new ArgumentOutOfRangeException("value", SR.Argument_MustBeNonNegative);
+                    throw new ArgumentOutOfRangeException(nameof(MovementThreshold), SR.Argument_MustBeNonNegative);
                 }
                 m_threshold = value;
             }
@@ -232,14 +227,14 @@ namespace System.Device.Location
         }
 
         [SecuritySafeCritical]
-        public void Start(Boolean suppressPermissionPrompt)
+        public void Start(bool suppressPermissionPrompt)
         {
             DisposeCheck();
             m_watcher.TryStart(suppressPermissionPrompt, TimeSpan.Zero);
         }
 
         [SecuritySafeCritical]
-        public Boolean TryStart(Boolean suppressPermissionPrompt, TimeSpan timeout)
+        public bool TryStart(bool suppressPermissionPrompt, TimeSpan timeout)
         {
             DisposeCheck();
             //
@@ -279,7 +274,7 @@ namespace System.Device.Location
 
                     PostEvent(OnPositionChanged, new GeoPositionChangedEventArgs<GeoCoordinate>(e.Position));
 
-                    OnPropertyChanged("Position");
+                    OnPropertyChanged(nameof(Position));
                 }
             }
         }
@@ -288,33 +283,30 @@ namespace System.Device.Location
         {
             PostEvent(OnPositionStatusChanged, new GeoPositionStatusChangedEventArgs(e.Status));
 
-            OnPropertyChanged("Status");
+            OnPropertyChanged(nameof(Status));
         }
 
         void OnInternalPermissionChanged(object sender, GeoPermissionChangedEventArgs e)
         {
-            OnPropertyChanged("Permission");
+            OnPropertyChanged(nameof(Permission));
         }
 
         protected void OnPositionChanged(GeoPositionChangedEventArgs<GeoCoordinate> e)
         {
             Utility.Trace("GeoCoordinateWatcher.OnPositionChanged: " + e.Position.Location.ToString());
-            EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>> t = PositionChanged;
-            if (t != null) t(this, e);
-        }
+			PositionChanged?.Invoke(this, e);
+		}
 
         protected void OnPositionStatusChanged(GeoPositionStatusChangedEventArgs e)
         {
             Utility.Trace("GeoCoordinateWatcher.OnPositionStatusChanged: " + e.Status.ToString());
-            EventHandler<GeoPositionStatusChangedEventArgs> t = StatusChanged;
-            if (t != null) t(this, e);
-        }
+			StatusChanged?.Invoke(this, e);
+		}
 
-        protected void OnPropertyChanged(String propertyName)
+        protected void OnPropertyChanged(string propertyName)
         {
-            if (m_propertyChanged != null)
-                m_propertyChanged(this, new PropertyChangedEventArgs(propertyName));
-        }
+			m_propertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 
         #region Events
 
@@ -380,7 +372,7 @@ namespace System.Device.Location
             Dispose(false);
         }
 
-        protected virtual void Dispose(Boolean disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!m_disposed)
             {

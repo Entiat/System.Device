@@ -11,9 +11,6 @@
 **
 =============================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace System.Device.Location
 {
@@ -25,7 +22,7 @@ namespace System.Device.Location
         #region Constructors
 
         public GeoPosition() :
-            this(DateTimeOffset.MinValue, default(T))
+            this(DateTimeOffset.MinValue, default)
         {
         }
 

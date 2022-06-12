@@ -11,76 +11,72 @@
 **
 =============================================================================*/
 
-using System;
 using System.ComponentModel;
-using System.Globalization;
-using System.Collections.Generic;
 using System.Threading;
-using System.Diagnostics.CodeAnalysis;
 
 namespace System.Device.Location
 {
     public class CivicAddress
     {
-        public static readonly CivicAddress Unknown = new CivicAddress();
+        public static readonly CivicAddress Unknown = new();
 
         //
         // private construcotr for creating single instance of CivicAddress.Unknown
         //
         public CivicAddress()
         {
-            AddressLine1  = String.Empty;
-            AddressLine2  = String.Empty;
-            Building      = String.Empty;
-            City          = String.Empty;
-            CountryRegion = String.Empty;
-            FloorLevel    = String.Empty;
-            PostalCode    = String.Empty;
-            StateProvince = String.Empty;
+            AddressLine1  = string.Empty;
+            AddressLine2  = string.Empty;
+            Building      = string.Empty;
+            City          = string.Empty;
+            CountryRegion = string.Empty;
+            FloorLevel    = string.Empty;
+            PostalCode    = string.Empty;
+            StateProvince = string.Empty;
         }
             
-        public CivicAddress(String addressLine1, String addressLine2, String building, String city, String countryRegion, String floorLevel, String postalCode, String stateProvince)
+        public CivicAddress(string addressLine1, string addressLine2, string building, string city, string countryRegion, string floorLevel, string postalCode, string stateProvince)
             : this()
         {
             bool hasField = false;
 
-            if (addressLine1 != null && addressLine1 != String.Empty)
+            if (addressLine1 != null && addressLine1 != string.Empty)
             {
                 hasField = true;
                 AddressLine1 = addressLine1;
             }
-            if (addressLine2 != null && addressLine2 != String.Empty)
+            if (addressLine2 != null && addressLine2 != string.Empty)
             {
                 hasField = true;
                 AddressLine2 = addressLine2;
             }
-            if (building != null && building != String.Empty)
+            if (building != null && building != string.Empty)
             {
                 hasField = true;
                 Building = building;
             }
-            if (city != null && city != String.Empty)
+            if (city != null && city != string.Empty)
             {
                 hasField = true;
                 City = city;
             }
-            if (countryRegion != null && countryRegion != String.Empty)
+            if (countryRegion != null && countryRegion != string.Empty)
             {
                 hasField = true;
                 CountryRegion = countryRegion;
             }
-            if (floorLevel != null && floorLevel != String.Empty)
+            if (floorLevel != null && floorLevel != string.Empty)
             {
                 hasField = true;
                 FloorLevel = floorLevel;
             }
-            if (postalCode != null && postalCode != String.Empty)
+            if (postalCode != null && postalCode != string.Empty)
             {
                 hasField = true;
                 PostalCode = postalCode;
             }
 
-            if (stateProvince != null && stateProvince != String.Empty)
+            if (stateProvince != null && stateProvince != string.Empty)
             {
                 hasField = true;
                 StateProvince = stateProvince;
@@ -92,21 +88,21 @@ namespace System.Device.Location
             }
         }
 
-        public String AddressLine1 { get; set; }
-        public String AddressLine2 { get; set; }
-        public String Building { get; set; }
-        public String City { get; set; }
-        public String CountryRegion { get; set; }
-        public String FloorLevel { get; set; }
-        public String PostalCode { get; set; }
-        public String StateProvince { get; set; }
+        public string AddressLine1 { get; set; }
+        public string AddressLine2 { get; set; }
+        public string Building { get; set; }
+        public string City { get; set; }
+        public string CountryRegion { get; set; }
+        public string FloorLevel { get; set; }
+        public string PostalCode { get; set; }
+        public string StateProvince { get; set; }
 
-        public Boolean IsUnknown 
+        public bool IsUnknown 
         {
             get
             {
-                return (String.IsNullOrEmpty(AddressLine1) && String.IsNullOrEmpty(AddressLine2) &&
-                        String.IsNullOrEmpty(Building) && String.IsNullOrEmpty(City) && String.IsNullOrEmpty(CountryRegion) && String.IsNullOrEmpty(FloorLevel) && String.IsNullOrEmpty(PostalCode) && String.IsNullOrEmpty(StateProvince));
+                return (string.IsNullOrEmpty(AddressLine1) && string.IsNullOrEmpty(AddressLine2) &&
+                        string.IsNullOrEmpty(Building) && string.IsNullOrEmpty(City) && string.IsNullOrEmpty(CountryRegion) && string.IsNullOrEmpty(FloorLevel) && string.IsNullOrEmpty(PostalCode) && string.IsNullOrEmpty(StateProvince));
             }
         }
 
@@ -132,7 +128,7 @@ namespace System.Device.Location
 
     public sealed class CivicAddressResolver : ICivicAddressResolver
     {
-        private SynchronizationContext m_synchronizationContext;
+        private readonly SynchronizationContext m_synchronizationContext;
 
         public CivicAddressResolver()
         {
@@ -153,12 +149,12 @@ namespace System.Device.Location
         {
             if (coordinate == null)
             {
-                throw new ArgumentNullException("coordinate");
+                throw new ArgumentNullException(nameof(coordinate));
             }
 
             if (coordinate.IsUnknown)
             {
-                throw new ArgumentException("coordinate");
+                throw new ArgumentException(null, nameof(coordinate));
             }
 
             return coordinate.m_address;
@@ -168,12 +164,12 @@ namespace System.Device.Location
         {
             if (coordinate == null)
             {
-                throw new ArgumentNullException("coordinate");
+                throw new ArgumentNullException(nameof(coordinate));
             }
 
-            if (Double.IsNaN(coordinate.Latitude) || Double.IsNaN(coordinate.Longitude))
+            if (double.IsNaN(coordinate.Latitude) || double.IsNaN(coordinate.Longitude))
             {
-                throw new ArgumentException("coordinate");
+                throw new ArgumentException(null, nameof(coordinate));
             }
 
             ThreadPool.QueueUserWorkItem(new WaitCallback(this.ResolveAddress), coordinate);
@@ -183,9 +179,8 @@ namespace System.Device.Location
 
         private void OnResolveAddressCompleted(ResolveAddressCompletedEventArgs e)
         {
-            EventHandler<ResolveAddressCompletedEventArgs> t = ResolveAddressCompleted;
-            if (t != null) t(this, e);
-        }
+			ResolveAddressCompleted?.Invoke(this, e);
+		}
 
         /// <summary>Represents a callback to a protected virtual method that raises an event.</summary>
         /// <typeparam name="T">The <see cref="T:System.EventArgs"/> type identifying the type of object that gets raised with the event"/></typeparam>
@@ -200,7 +195,7 @@ namespace System.Device.Location
         {
             if (m_synchronizationContext != null)
             {
-                m_synchronizationContext.Post(delegate(Object state) { callback((T)state); }, e);
+                m_synchronizationContext.Post(delegate(object state) { callback((T)state); }, e);
             }
         }
 
@@ -209,8 +204,7 @@ namespace System.Device.Location
         //
         private void ResolveAddress(object state)
         {
-            GeoCoordinate coordinate = state as GeoCoordinate;
-            if (coordinate != null)
+            if (state is GeoCoordinate coordinate)
             {
                 PostEvent(OnResolveAddressCompleted, new ResolveAddressCompletedEventArgs(coordinate.m_address, null, false, null));
             }
