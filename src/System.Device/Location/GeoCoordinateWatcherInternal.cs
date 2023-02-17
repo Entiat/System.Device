@@ -265,11 +265,8 @@ namespace System.Device.Location
                     }
                 }
 
-                ManualResetEvent eventDone = m_eventGetLocDone;
-                if (eventDone != null)
-                {
-                    eventDone.Set();
-                }
+                var eventDone = m_eventGetLocDone;
+                eventDone?.Set();
             }
         }
 
@@ -711,11 +708,7 @@ namespace System.Device.Location
         [SecuritySafeCritical]
         private void Cleanup()
         {
-#if !SILVERLIGHT
             SpinWait.SpinUntil(NoPositionEventsCurrentlyProcessing);
-#else
-            SpinUntil_NoPositionEventsCurrentlyProcessing();
-#endif  // !SILVERLIGHT
                         
             lock (this.InternalSyncObject)
             {
@@ -741,9 +734,7 @@ namespace System.Device.Location
                             m_civicAddrRegistered = false;
                         }
                     }
-#if !SILVERLIGHT
-                    Marshal.ReleaseComObject(m_location);
-#endif
+					_ = Marshal.ReleaseComObject(m_location);
                     m_location = null;
                 }
 
