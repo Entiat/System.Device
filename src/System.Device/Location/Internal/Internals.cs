@@ -56,14 +56,16 @@ namespace System.Device.Location.Internal
     internal class PROPVARIANT : IDisposable
     {
         [FieldOffset(0)] public VarEnum vt = VarEnum.VT_EMPTY;
-        [FieldOffset(8)] private Double dblVal;
-        [FieldOffset(8)] private IntPtr other;
+        [FieldOffset(8)] private readonly double dblVal;
+        [FieldOffset(8)] private readonly IntPtr other;
 
         [DllImport("Ole32")]
-        private static extern void PropVariantClear(PROPVARIANT pvar);
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+		private static extern void PropVariantClear(PROPVARIANT pvar);
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 
-        #region IDisposable
-        public void Dispose()
+		#region IDisposable
+		public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -92,21 +94,21 @@ namespace System.Device.Location.Internal
         }
 
         [SecuritySafeCritical]
-        public Object GetValue()
+        public object GetValue()
         {
-            switch (vt)
-            {
-                case VarEnum.VT_R8: return dblVal;
-                case VarEnum.VT_LPWSTR: return Marshal.PtrToStringUni(other);
-                default: return null;
-            }
-        }
+			return vt switch
+			{
+				VarEnum.VT_R8 => dblVal,
+				VarEnum.VT_LPWSTR => Marshal.PtrToStringUni(other),
+				_ => null,
+			};
+		}
     }
     #endregion
 
     #region PROPERTYKEY
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    internal struct PROPERTYKEY
+    internal readonly struct PROPERTYKEY
     {
         public PROPERTYKEY(Int32 propertyId)
         {
@@ -122,23 +124,23 @@ namespace System.Device.Location.Internal
     //
     // These are the keys not available on ILatLongReport interface
     //
-    internal struct LocationPropertyKey
+    internal readonly struct LocationPropertyKey
     {
-        public static readonly PROPERTYKEY Speed         = new PROPERTYKEY(6);
-        public static readonly PROPERTYKEY Heading       = new PROPERTYKEY(7);
-        public static readonly PROPERTYKEY AddressLine1  = new PROPERTYKEY(23);
-        public static readonly PROPERTYKEY AddressLine2  = new PROPERTYKEY(24);
-        public static readonly PROPERTYKEY City          = new PROPERTYKEY(25);
-        public static readonly PROPERTYKEY StateProvince = new PROPERTYKEY(26);
-        public static readonly PROPERTYKEY PostalCode    = new PROPERTYKEY(27);
-        public static readonly PROPERTYKEY CountryRegion = new PROPERTYKEY(28);
+        public static readonly PROPERTYKEY Speed         = new (6);
+        public static readonly PROPERTYKEY Heading       = new (7);
+        public static readonly PROPERTYKEY AddressLine1  = new (23);
+        public static readonly PROPERTYKEY AddressLine2  = new (24);
+        public static readonly PROPERTYKEY City          = new (25);
+        public static readonly PROPERTYKEY StateProvince = new (26);
+        public static readonly PROPERTYKEY PostalCode    = new (27);
+        public static readonly PROPERTYKEY CountryRegion = new (28);
 
     }
 
-    internal struct LocationReportKey
+    internal readonly struct LocationReportKey
     {
-        internal static readonly Guid LatLongReport = new Guid("7FED806D-0EF8-4f07-80AC-36A0BEAE3134");
-        internal static readonly Guid CivicAddressReport = new Guid("C0B19F70-4ADF-445d-87F2-CAD8FD711792");
+        internal static readonly Guid LatLongReport = new("7FED806D-0EF8-4f07-80AC-36A0BEAE3134");
+        internal static readonly Guid CivicAddressReport = new("C0B19F70-4ADF-445d-87F2-CAD8FD711792");
     }
     #endregion
 

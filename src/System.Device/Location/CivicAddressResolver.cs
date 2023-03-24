@@ -193,10 +193,7 @@ namespace System.Device.Location
         /// <param name="e">The <see cref="T:System.EventArgs"/> object that should be passed to the protected virtual method raising the event.</param>
         private void PostEvent<T>(EventRaiser<T> callback, T e) where T : EventArgs 
         {
-            if (m_synchronizationContext != null)
-            {
-                m_synchronizationContext.Post(delegate(object state) { callback((T)state); }, e);
-            }
+            m_synchronizationContext?.Post(delegate(object state) { callback((T)state); }, e);
         }
 
         //

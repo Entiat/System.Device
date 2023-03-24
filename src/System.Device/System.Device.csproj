@@ -19,6 +19,7 @@
     <PackageProjectUrl>https://github.com/dotMorten/System.Device</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>System.Device GPS GeoCoodinate GeoCoordinateWatcher Location</PackageTags>
+    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
