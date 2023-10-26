@@ -57,7 +57,6 @@ namespace System.Device.Location
         void Start();
         void Start(bool suppressPermissionPrompt);
         bool TryStart(bool suppressPermissionPrompt, TimeSpan timeout);
-        [SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords")]
         void Stop();
 
         GeoPosition<T> Position { get; }
