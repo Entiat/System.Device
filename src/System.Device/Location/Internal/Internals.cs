@@ -108,15 +108,10 @@ namespace System.Device.Location.Internal
 
     #region PROPERTYKEY
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    internal readonly struct PROPERTYKEY
+    internal readonly struct PROPERTYKEY(Int32 propertyId)
     {
-        public PROPERTYKEY(Int32 propertyId)
-        {
-            pid = propertyId;
-            fmtid = new Guid("055C74D8-CA6F-47D6-95C6-1ED3637A0FF4");
-        }
-        public readonly Guid fmtid;
-        public readonly Int32 pid;
+        public readonly Guid fmtid = new("055C74D8-CA6F-47D6-95C6-1ED3637A0FF4");
+        public readonly int pid = propertyId;
     }
     #endregion
 
@@ -134,7 +129,6 @@ namespace System.Device.Location.Internal
         public static readonly PROPERTYKEY StateProvince = new (26);
         public static readonly PROPERTYKEY PostalCode    = new (27);
         public static readonly PROPERTYKEY CountryRegion = new (28);
-
     }
 
     internal readonly struct LocationReportKey
@@ -181,7 +175,9 @@ namespace System.Device.Location.Internal
     /// ILocationReport COM interface
     /// </summary>
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("C8B7F7EE-75D0-4DB9-B62D-7A0F369CA456")]
+#pragma warning disable SYSLIB1096 // Convert to 'GeneratedComInterface'
     internal interface ILocationReport
+#pragma warning restore SYSLIB1096 // Convert to 'GeneratedComInterface'
     {
         [PreserveSig]
         Int32 GetSensorID(ref Guid sensorId);
@@ -197,7 +193,9 @@ namespace System.Device.Location.Internal
     /// ILatLongReport COM interface
     /// </summary>
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("7FED806D-0EF8-4F07-80AC-36A0BEAE3134")]
+#pragma warning disable SYSLIB1096 // Convert to 'GeneratedComInterface'
     internal interface ILatLongReport : ILocationReport
+#pragma warning restore SYSLIB1096 // Convert to 'GeneratedComInterface'
     {
         [PreserveSig]
         new Int32 GetSensorID(ref Guid sensorId);
